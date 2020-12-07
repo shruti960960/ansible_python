@@ -1,0 +1,42 @@
+--- 
+ - name: configure mariadb
+   hosts: ansible_clients
+   remote_user: root
+   become: true
+   tasks:
+           - name: install mariadb-server
+             yum:
+                     name: 
+                      - mariadb-server
+                      - python3-mysql.x86_64                      
+                     state: present
+           - name: start mariadb-server service
+             service:
+                     name: mariadb
+                     state: started
+                     enabled: true
+           - name: create mysql user
+             mysql_user:
+                     login_user: root
+                     login_password: root
+                     user: shruti
+                     check_implicit_admin: true
+                     password: shruti
+                     login_host:  localhost
+           - name: create database user with name 'dbuser' and password root with all databases privileges
+             mysql_user:
+                     name: dbuser
+                     password: root
+                     login_unix_socket: /var/lib/mysql.sock
+                     login_user: shruti
+                     login_password: shruti
+                     login_host: all
+                     priv: '*.*:ALL'
+                     state: present
+           - name: create new database with name svvv 
+             mysql_db:
+                     name: svvv
+                     state: present
+                     login_user: root
+                     login_password: root
+                     login_host: localhost

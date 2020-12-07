@@ -1,0 +1,34 @@
+---
+ - name: configuring samba at client side
+   hosts: ansible_clients
+   remote_user: root
+   become: true
+   vars:
+           server_ip: "192.168.43.175"
+           mountpoint: /sambaclient
+   tasks:
+           - name: install samba at client side
+             yum:
+                     name: samba-client,cifs-utils
+                     state: latest
+
+           - name: smbclient
+             command:
+                     cmd: smbclient {{ server_ip }}
+
+           
+           - name: create file
+             file:
+                     path: "{{ mountpoint }}"
+                     state: directory
+
+           - name: copy /etc/fstab
+             lineinfile:
+                     path: /etc/fstab
+                     line: "{{lookup('file', 'samba1.j2')}}"
+                     create: yes
+                     state: present
+
+           - name: mount
+             command:
+                     cmd: mount -a

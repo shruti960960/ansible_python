@@ -1,0 +1,54 @@
+---
+ - name: configuring samba at server side
+   hosts: ansible_clients
+   remote_user: root
+   become: true
+   vars:
+           pkg: "samba*"
+           share: "/hc2"
+   tasks:
+           - name: install samba
+             yum:
+                     name: "{{ pkg }}"
+                     state: latest
+
+           - name: creating share
+             file:
+                     path: "{{ share }}"
+                     state: directory
+
+           
+           - name: appending
+             blockinfile:
+                     path: /etc/samba/smb.conf
+                     block: "{{lookup('file', 'samba.j2')}}"
+                     create: yes
+                     state: present
+           
+           
+           - name: permission
+             command:
+                     cmd: chmod 777 {{ share }}
+
+           - name: applying context
+             command:
+                     cmd: semanage fcontext -a -t samba_share_t '{"{{share}}"}(/.*)?'
+
+           - name: restore
+             command:
+                     cmd: restorecon -vvRF {{ share }}
+
+           - name: restart and enabled service
+             service:
+                     name: smb 
+                     state: restarted
+                     enabled: true
+           - name: restart and enabled service
+             service:
+                     name: nmb
+                     state: restarted
+                     enabled: true
+
+           - name: activate firewall
+             command:
+                     cmd: firewall-cmd --add-service=samba --permanent

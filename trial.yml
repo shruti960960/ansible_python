@@ -1,0 +1,13 @@
+---
+ - name: configuring samba at server side
+   hosts: ansible_clients
+   remote_user: root
+   become: true
+   tasks:
+           - name: appending
+             blockinfile:
+                     path: /root/hello.py
+                     block: "{{lookup('file', 'samba.j2')}}"
+                     create: yes
+                     state: present
+                     

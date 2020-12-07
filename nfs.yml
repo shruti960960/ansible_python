@@ -1,0 +1,54 @@
+---
+ - name: configure nfs
+   hosts: ansible_clients
+   remote_user: root
+   become: true
+   vars:
+           nfs_mountpoint: '/nfsmount'
+           nfsexport: '/nfs'
+   tasks:
+           #server side NFS
+           - name: check and install nfs packages
+             yum:
+                     name: nfs-utils
+                     state: installed  
+             tags: nfs_clients,nfs_server
+            
+           - name: copy /etc/exports
+             template:
+                     src: exports.j2
+                     dest: /etc/exports
+                     owner: root
+                     group: root
+                     mode: 755
+             tags: nfs_server,copy_export
+           - name: export share
+             command:
+                     cmd: exportfs -a
+          
+           - name: start the nfs service
+             service:
+                     name: nfs-server
+                     state: started
+                     enabled: true
+             tags: nfs_server
+
+             #client side NFS
+           - name: create mountpoint for nfs
+             file:
+                     path: "{{ nfs_mountpoint }}"
+                     state: directory
+                     mode: 755
+                     owner: root
+             tags: nfs_client
+           - name: update fstab and mount nfs share 
+             mount:
+                     name: "{{ nfs_mountpoint }}"
+                     src: 192.168.43.247:{{ nfsexport }}
+                     fstype: nfs
+                     opts: defaults
+                     dump: 0
+                     passno: 0
+                     state: mounted 
+             tags: nfs_client
+
