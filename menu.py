@@ -13,7 +13,7 @@ os.system("tput setaf 7")
 print("\t\t---------------------------------------------------------")
 
 passwd = getpass.getpass("Enter ur password : ")
-apass = "shruti"
+apass = "******"
 if passwd != apass:
     print("authentication failure")
     exit()
